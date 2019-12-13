@@ -13,7 +13,7 @@ $date = get-date -format "ddMMyyHHmm"
 $mydocuments = [environment]::getfolderpath("mydocuments")
 $documentName = ($mydocuments + '\NSGReport' + $date + '.xlsx')
 
-#Connect-AzAccount
+Connect-AzAccount
 
 #Run through each Subscription
 ForEach ($vsub in $azsubs)
