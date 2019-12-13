@@ -6,4 +6,4 @@ Powershell script to create an Excel report of your Azure VM's in all of your su
 
 The second sheet shows all of your Network Security Group rules.
 
-
+The Script requires the Import-Excel module to be installed. Install-Module -Name ImportExcel
