@@ -28,7 +28,6 @@ ForEach ($vsub in $azsubs)
 #Build Array of Each VM with IP and NIC 
     foreach($nic in $nics)
         {
-        #$info = "" | Select VmName, ResourceGroupName, HostName, NIC, IpAddress, PublicIP, PowerStatus, Location, OsType, VmSize
         $vm = $vms | ? -Property Id -eq $nic.VirtualMachine.id
         if ($nic.IpConfigurations.PublicIpAddress.Id)
         {
