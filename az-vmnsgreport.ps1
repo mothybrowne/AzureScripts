@@ -1,24 +1,20 @@
-# Create Report on all your Azure VMs and NSG Security Rules
-
 #Set Arrays
 $azvmarray = @()
 $info = @()
 $nsginfo = @()
 $allobj = @()
 $finalserverreport = @()
-
 #Set other variables
 $azsubs = get-azsubscription
 $date = get-date -format "ddMMyyHHmm"
 $mydocuments = [environment]::getfolderpath("mydocuments")
 $documentName = ($mydocuments + '\NSGReport' + $date + '.xlsx')
-
 Connect-AzAccount
-
 #Run through each Subscription
 ForEach ($vsub in $azsubs)
     {
     Select-AzSubscription $vsub.SubscriptionID
+    Write-Host "Working on Subscription:" $vsub.Name
     $azvms = @()
     $aznsgs = @()
     $vms = get-azvm -Status
@@ -28,6 +24,7 @@ ForEach ($vsub in $azsubs)
 #Build Array of Each VM with IP and NIC 
     foreach($nic in $nics)
         {
+        #$info = "" | Select VmName, ResourceGroupName, HostName, NIC, IpAddress, PublicIP, PowerStatus, Location, OsType, VmSize
         $vm = $vms | ? -Property Id -eq $nic.VirtualMachine.id
         if ($nic.IpConfigurations.PublicIpAddress.Id)
         {
@@ -52,10 +49,8 @@ ForEach ($vsub in $azsubs)
         }
         $azvms+=$obvm
         }
-    $finalserverreport += $azvms
-
+    $finalserverreport += $azvmsfor
     Write-Host "Servers to Audit:" $azvms.count
-
 #Associcate each NIC with it's NSG
     for ( $ix = 0; $ix -lt $azvms.count; $ix++ )
         {
@@ -73,9 +68,7 @@ ForEach ($vsub in $azsubs)
         $nsginfo.NSGName = $ansgname
         $aznsgs+=$nsginfo
         }
-
     Write-Host "NSG's to Audit:" $aznsgs.count
-
 #Audit the Network Security Groups
     $nsgs = Get-AzNetworkSecurityGroup
     foreach ($nsg in $nsgs)
@@ -85,7 +78,6 @@ ForEach ($vsub in $azsubs)
             $snarrayid = $subnet.id.Split('/').count - 1
             $vnarrayid = $subnet.id.Split('/').count - 3
             $snarray = $subnet.id.Split('/')
-
             $vnetname = $snarray[$vnarrayid]
             $subnetname = $snarray[$snarrayid]
         } else {
@@ -115,7 +107,6 @@ ForEach ($vsub in $azsubs)
             VNet = $vnetname
             Subnet = $subnetname
             }
-
             $allobj += $obnsg
         }
     }
@@ -123,12 +114,9 @@ ForEach ($vsub in $azsubs)
     
     
 }
-
 #Strip Object lists ready for export
 $jsonconv = $allobj | ConvertTo-Json -depth 1 
 $finalreport = $jsonconv | convertfrom-json
-
 #Export to Excel
 $finalserverreport | Export-Excel -WorksheetName "Servers" $documentName -AutoSize -FreezeTopRow -AutoFilter
 $finalreport | Export-Excel -WorksheetName "NSG Rules" $documentName -AutoSize -FreezeTopRow -AutoFilter
-
